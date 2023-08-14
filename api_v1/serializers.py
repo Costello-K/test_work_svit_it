@@ -1,51 +1,50 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from django.db.models import Q
 
 from .models import Log
+from services.parsers import parse_row_to_date_log
+from services.archive_extractor.archive_extractor import archive_extractor
+from services.database import create_logs_transaction
+from services.file_reader.file_reader import file_reader
 
 User = get_user_model()
 
 
+# Serializer for file upload with logs
 class FileUploadSerializer(serializers.Serializer):
-    file = serializers.FileField()
-
-    def parse_log_row(self, row):
-        if len(row) >= 2:
-            datetime_creating_log_str = row[0]
-            log_text = row[1]
-        else:
-            raise ValueError('111')
-
-        try:
-            datetime_creating_log = datetime.strptime(datetime_creating_log_str, '%Y-%m-%d %H:%M:%S,%f')
-        except ValueError:
-            datetime_creating_log = timezone.now()
-
-        return {
-            'datetime_creating_log': datetime_creating_log,
-            'log': log_text
-        }
+    file = serializers.FileField()  # field for uploading files
+    parser = parse_row_to_date_log  # parser function for log date extraction
+    reader = file_reader            # function for reading CSV files into a list
+    extractor = archive_extractor   # function for extract archive files into a list
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        file = validated_data['file']
+        """
+        Create logs from the uploaded file.
+        """
+        user = self.context['request'].user  # get the authenticated user
+        file = validated_data.get('file')
 
-        logs_created = []
-        with open(file.temporary_file_path(), 'r', encoding='utf-8') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                log_data = self.parse_log_row(row)
-                log_data['user'] = user
-                log_data['filename'] = file.name
+        # checking the size of the uploaded file against the maximum allowable file size
+        if file.size > (settings.DATA_UPLOAD_MAX_FILE_SIZE_MB * 1024 * 1024):
+            raise ValueError(f'Maximum file size allowed is {settings.DATA_UPLOAD_MAX_FILE_SIZE_MB}MB')
 
-                logs_created.append(Log.objects.create(**log_data))
+        # extract files from the archive
+        extracted_files = self.extractor(file)
 
-        return logs_created
+        # create a list of log objects
+        data_logs = []
+        for f in extracted_files:
+            data_logs.extend(self.reader(f, self.parser))
+
+        # write all the logs to the database in one transaction
+        create_logs_transaction(data_logs)
+
+        return file
 
 
-class LogsListSerializer(serializers.ModelSerializer):
+# Serializer for listing logs
+class LogListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
         fields = ['id', 'filename', 'datetime_adding_log', 'datetime_creating_log', 'log']

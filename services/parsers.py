@@ -1,22 +1,28 @@
+from dateutil.parser import parse
 
-def parse_log_row(row):
-    if len(row) >= 2:
-        datetime_creating_log_str = row[0]
-        log_text = row[1]
-    else:
-        raise ValueError('Log not founds')
+
+def parse_row_to_date_log(instance, row, filename):
+    """
+    Parse a row of log data to extract datetime and log content.
+
+    :param instance: Reference to the passed object instance.
+    :param row: A row of log data.
+    :param filename: The name of the file being parsed.
+    :return: A dictionary containing parsed log information.
+    """
+    if len(row) < 2:
+        raise ValueError('Log not found')
 
     try:
-        datetime_creating_log = parse(datetime_creating_log_str)
+        # parsing a string into a datetype
+        datetime_creating_log = parse(row[0])
     except ValueError:
         raise ValueError('Date have incorrect type')
 
+    # object to write to the database
     return {
         'datetime_creating_log': datetime_creating_log,
-        'log': log_text
+        'log': row[1],
+        'user': instance.context['request'].user,
+        'filename': filename,
     }
-class ParserCSVFile:
-    def __init__(self, line):
-        self.line = line
-
-    def line_to_tuple(self):

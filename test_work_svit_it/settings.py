@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'api_v1',
+    'user',
 
     'rest_framework',
     'corsheaders',
@@ -160,3 +161,13 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'services.pagination.SettingsPageNumberPagination',
 }
+
+SWAGGER_SETTINGS = {
+    'LOGIN_URL': '/admin/login/',
+    'LOGOUT_URL': '/admin/logout/',
+}
+
+# LIMITS FOR UPLOADED FILES
+
+DATA_UPLOAD_MAX_FILE_SIZE_MB = 10
+DATA_UPLOAD_MAX_NUMBER_LOGS = 1_000_000

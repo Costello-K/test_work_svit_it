@@ -6,7 +6,7 @@ User = get_user_model()
 
 class Log(models.Model):
     """Model for a Log object"""
-    user = models.ForeignKey(User, on_delete=models.SET_NULL)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     filename = models.CharField(max_length=255)
     datetime_adding_log = models.DateTimeField(auto_now_add=True)
     datetime_creating_log = models.DateTimeField()

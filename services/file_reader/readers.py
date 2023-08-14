@@ -42,7 +42,7 @@ class CSVFileReader(FileReader):
         with StringIO(file_obj.read().decode()) as csv_file:  # read and decode the file content
             csv_reader = csv.reader(csv_file, delimiter=',')  # create a CSV reader
             number_log = 0
-            for row in csv_reader:
+            for row in csv_reader:                            # iterate over rows in the CSV file
                 # check if the maximum number of logs is exceeded
                 if number_log > self.record_limit:
                     raise MaximumNumberLogs(self.record_limit)

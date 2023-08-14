@@ -1,8 +1,6 @@
 # created by virtualenv automatically
-env
-env/
-.env
-**/.env
+.env-doc
+.env-env
 venv
 venv/
 .idea
@@ -10,3 +8,5 @@ pyvenv.cfg
 
 Lib/
 Scripts/
+
+/.pytest_cache

@@ -4,7 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 
 class SettingsPageNumberPagination(PageNumberPagination):
     """Class for basic page pagination settings"""
-    page_query_param = 'page'  # Name of the page number parameter in the URL
+    page_query_param = 'page'            # Name of the page number parameter in the URL
     page_size_query_param = 'page_size'  # Name of the page size parameter in the URL
     max_page_size = 100
     page_size = 100
